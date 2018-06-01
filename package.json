@@ -1,0 +1,40 @@
+{
+    "name": "pen-boilerplate",
+    "version": "1.0.0",
+    "private": true,
+    "license": "MIT",
+    "scripts": {
+        "dev": "node_modules/.bin/webpack-dev-server --hot --inline --config webpack.config.js",
+        "build": "node_modules/.bin/webpack --config webpack.config.js"
+    },
+    "devDependencies": {
+        "babel-core": "^6.26.3",
+        "babel-eslint": "^8.2.3",
+        "babel-loader": "^7.1.4",
+        "babel-preset-stage-0": "^6.24.1",
+        "css-loader": "^0.28.11",
+        "eslint": "^4.19.1",
+        "eslint-config-standard": "^11.0.0",
+        "eslint-loader": "^2.0.0",
+        "eslint-plugin-import": "^2.12.0",
+        "eslint-plugin-node": "^6.0.1",
+        "eslint-plugin-promise": "^3.8.0",
+        "eslint-plugin-standard": "^3.1.0",
+        "file-loader": "^1.1.11",
+        "friendly-errors-webpack-plugin": "^1.7.0",
+        "html-webpack-plugin": "^3.2.0",
+        "postcss-import": "^11.1.0",
+        "postcss-loader": "^2.1.5",
+        "pug": "^2.0.3",
+        "pug-loader": "^2.4.0",
+        "style-loader": "^0.21.0",
+        "stylus": "^0.54.5",
+        "stylus-loader": "^3.0.2",
+        "webpack": "^4.10.2",
+        "webpack-cli": "^2.1.4",
+        "webpack-dev-server": "^3.1.4"
+    },
+    "dependencies": {
+        "reset-css": "^3.0.0"
+    }
+}
