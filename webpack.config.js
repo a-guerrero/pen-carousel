@@ -29,8 +29,9 @@ module.exports = {
                 use: {
                     loader: 'babel-loader',
                     options: {
-                        // Codepen preset
-                        presets: ['stage-0']
+                        // Codepen preset WITHOUT 'react'
+                        // https://bit.ly/2JeBLxB
+                        presets: ['es2015', 'stage-0']
                     },
                 },
             },
@@ -53,11 +54,12 @@ module.exports = {
         new FriendlyErrorsWebpackPlugin(),
     ],
     devServer: {
-        contentBase: path.join(__dirname, 'dist'),
-        compress: true,
-        port: 9000,
-        hot: true,
-        quiet: true,
         clientLogLevel: 'warning',
+        compress: true,
+        contentBase: path.join(__dirname, 'dist'),
+        host: '0.0.0.0',
+        hot: true,
+        port: 9000,
+        quiet: true,
     },
 }
