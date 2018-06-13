@@ -16,7 +16,7 @@ const colors = Object.freeze({
     SKY: 0xFFFFFF,
     GROUND: 0X222225,
     POINT_LIGHT: 0xFFFFFF,
-    MESH_COLOR: 0x333438,
+    MESH_COLOR: 0x444147,
     MESH_SHININESS: 0x991A1C,
 })
 // #endregion
