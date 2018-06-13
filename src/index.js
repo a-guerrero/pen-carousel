@@ -14,7 +14,7 @@ const FAR = 15
 const colors = Object.freeze({
     BACKGROUND: 0x0E0E0F,
     SKY: 0xFFFFFF,
-    GROUND: 0x0E0E0F,
+    GROUND: 0X222225,
     POINT_LIGHT: 0xFFFFFF,
     MESH_COLOR: 0x333438,
     MESH_SHININESS: 0x991A1C,
@@ -115,6 +115,24 @@ const postProcessing = (function () {
     const rtTextureColor = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, pars);
 
     const bokehUniforms = THREE.UniformsUtils.clone(BokehShader.uniforms)
+    bokehUniforms['focalDepth'].value = 1.6
+    bokehUniforms['focalLength'].value = 15
+    bokehUniforms['fstop'].value = 2.2
+    bokehUniforms['maxblur'].value = 1.3
+    bokehUniforms['showFocus'].value = 0
+    bokehUniforms['manualdof'].value = 0
+    bokehUniforms['vignetting'].value = 0
+    bokehUniforms['depthblur'].value = 0
+    bokehUniforms['threshold'].value = 0.5
+    bokehUniforms['gain'].value = 2.0
+    bokehUniforms['bias'].value = 0.5
+    bokehUniforms['fringe'].value = 0.7
+    bokehUniforms['znear'].value = NEAR
+    bokehUniforms['zfar'].value = FAR
+    bokehUniforms['noise'].value = true
+    bokehUniforms['dithering'].value = 0.0001
+    bokehUniforms['pentagon'].value = 0
+    bokehUniforms['shaderFocus'].value = 0
     bokehUniforms['tColor'].value = rtTextureColor.texture
     bokehUniforms['tDepth'].value = rtTextureDepth.texture
     bokehUniforms['textureWidth'].value = window.innerWidth
@@ -131,7 +149,7 @@ const postProcessing = (function () {
     })
 
     const quadGeometry = new THREE.PlaneBufferGeometry(window.innerWidth, window.innerHeight, bokehMaterial)
-    const quad = new THREE.Mesh(quadGeometry)
+    const quad = new THREE.Mesh(quadGeometry, bokehMaterial)
     quad.position.z = -7
     scene.add(quad)
 
@@ -145,6 +163,10 @@ const postProcessing = (function () {
         quad,
     }
 }())
+
+postProcessing.bokehUniforms['znear'].value = camera.near
+postProcessing.bokehUniforms['zfar'].value = camera.far
+camera.setFocalLength(postProcessing.bokehUniforms['focalLength'].value)
 // #endregion
 
 // HEMISPHERE LIGHT
@@ -155,7 +177,7 @@ hemiLight.position.z = 0
 scene.add(hemiLight)
 
 // POINT LIGTH
-const pointLight = new THREE.PointLight(colors.POINT_LIGHT, 0.2, 100)
+const pointLight = new THREE.PointLight(colors.POINT_LIGHT, 0.25, 100)
 pointLight.position.x = 30
 pointLight.position.z = 30
 scene.add(pointLight)
@@ -187,11 +209,7 @@ const animate = () => {
     mesh.rotation.x = cosWave(0, meshMaxRotation, delta)
     mesh.rotation.y = cosWave(meshMaxRotation, 0, delta)
 
-    postProcessing.bokehMaterial.defines.RINGS = 3
-    postProcessing.bokehMaterial.defines.SAMPLES = 4
     postProcessing.bokehMaterial.needsUpdate = true
-
-    // renderer.render(scene, camera)
 
     renderer.clear()
     // render scene into texture
