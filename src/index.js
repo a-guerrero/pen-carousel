@@ -24,12 +24,6 @@ const colors = Object.freeze({
 // HELPERS
 ////////////////////////////////////////////////////////////////////////////////
 // #region
-/**
- * @param {number} deg
- */
-const degToRad = (deg) => {
-    return deg * Math.PI / 180
-}
 
 /**
  * @param {number} y1
@@ -98,11 +92,13 @@ bokehDepthMat.uniforms['mNear'].value = NEAR
 bokehDepthMat.uniforms['mFar'].value = FAR
 
 const postProcessing = (function () {
+    const { innerWidth, innerHeight } = window
+    const halfW = innerWidth / 2
+    const halfH = innerHeight / 2
+
     const scene = new THREE.Scene()
 
-    const halfW = window.innerWidth / 2
-    const halfH = window.innerHeight / 2
-    const camera = new THREE.OrthographicCamera(-halfW, halfW, halfH, -halfH, -10000, 10000)
+    const camera = new THREE.OrthographicCamera(-halfW, halfW, halfH, -halfH, -20, 20)
     camera.position.z = 1.55
     scene.add(camera)
 
@@ -111,8 +107,8 @@ const postProcessing = (function () {
         magFilter: THREE.LinearFilter,
         format: THREE.RGBFormat,
     }
-    const rtTextureDepth = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, pars);
-    const rtTextureColor = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, pars);
+    const rtTextureDepth = new THREE.WebGLRenderTarget(innerWidth, innerHeight, pars);
+    const rtTextureColor = new THREE.WebGLRenderTarget(innerWidth, innerHeight, pars);
 
     const bokehUniforms = THREE.UniformsUtils.clone(BokehShader.uniforms)
     bokehUniforms['focalDepth'].value = 1.6
@@ -135,8 +131,8 @@ const postProcessing = (function () {
     bokehUniforms['shaderFocus'].value = 0
     bokehUniforms['tColor'].value = rtTextureColor.texture
     bokehUniforms['tDepth'].value = rtTextureDepth.texture
-    bokehUniforms['textureWidth'].value = window.innerWidth
-    bokehUniforms['textureHeight'].value = window.innerHeight
+    bokehUniforms['textureWidth'].value = innerWidth
+    bokehUniforms['textureHeight'].value = innerHeight
 
     const bokehMaterial = new THREE.ShaderMaterial({
         uniforms: bokehUniforms,
@@ -148,7 +144,7 @@ const postProcessing = (function () {
         }
     })
 
-    const quadGeometry = new THREE.PlaneBufferGeometry(window.innerWidth, window.innerHeight, bokehMaterial)
+    const quadGeometry = new THREE.PlaneBufferGeometry(innerWidth, innerHeight, bokehMaterial)
     const quad = new THREE.Mesh(quadGeometry, bokehMaterial)
     quad.position.z = -7
     scene.add(quad)
@@ -198,18 +194,16 @@ scene.add(mesh)
 
 // ANIMATION
 ////////////////////////////////////////////////////////////////////////////////
-const then = Date.now()
-const meshMaxRotation = degToRad(540)
+const clock = new THREE.Clock()
+const meshMaxRotation = THREE.Math.degToRad(540)
 
 const animate = () => {
     requestAnimationFrame(animate)
-    const now = Date.now()
-    const delta = (now - then) * 8e-4
-    mesh.position.z = cosWave(-4, 4, delta)
-    mesh.rotation.x = cosWave(0, meshMaxRotation, delta)
-    mesh.rotation.y = cosWave(meshMaxRotation, 0, delta)
+    const elapsed = clock.getElapsedTime()
 
-    postProcessing.bokehMaterial.needsUpdate = true
+    mesh.position.z = cosWave(-4, 4, elapsed)
+    mesh.rotation.x = cosWave(0, meshMaxRotation, elapsed, 0.7)
+    mesh.rotation.y = cosWave(meshMaxRotation, 0, elapsed, 0.5)
 
     renderer.clear()
     // render scene into texture
@@ -229,6 +223,9 @@ animate()
 const onResize = () => {
     updateCameraAspectRatio(camera)
     updateRendererSize(renderer)
+    postProcessing.bokehUniforms['textureWidth'].value = window.innerWidth
+    postProcessing.bokehUniforms['textureHeight'].value = window.innerHeight
+    postProcessing.bokehMaterial.needsUpdate = true
 }
 
 window.addEventListener('resize', onResize)
