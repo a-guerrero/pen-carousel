@@ -3,6 +3,8 @@ import './index.styl'
 
 import { BokehShader, BokehDepthShader } from './BokehShader2'
 import * as THREE from 'three'
+THREE.BokehShader = BokehShader
+THREE.BokehDepthShader = BokehDepthShader
 
 // CONSTANTS
 ////////////////////////////////////////////////////////////////////////////////
@@ -58,6 +60,13 @@ const updateRendererSize = (renderer) => {
     const { width, height } = getRendererSize()
     renderer.setSize(width, height, false)
 }
+
+const updateBokeh = (postProcessing) => {
+    const { bokehUniforms, bokehMaterial } = postProcessing
+    bokehUniforms['textureWidth'].value = window.innerWidth
+    bokehUniforms['textureHeight'].value = window.innerHeight
+    bokehMaterial.needsUpdate = true
+}
 // #endregion
 
 // SCENE
@@ -84,9 +93,9 @@ body.appendChild(renderer.domElement)
 ////////////////////////////////////////////////////////////////////////////////
 // #region
 const bokehDepthMat = new THREE.ShaderMaterial({
-    uniforms: BokehDepthShader.uniforms,
-    vertexShader: BokehDepthShader.vertexShader,
-    fragmentShader: BokehDepthShader.fragmentShader
+    uniforms: THREE.BokehDepthShader.uniforms,
+    vertexShader: THREE.BokehDepthShader.vertexShader,
+    fragmentShader: THREE.BokehDepthShader.fragmentShader
 })
 bokehDepthMat.uniforms['mNear'].value = NEAR
 bokehDepthMat.uniforms['mFar'].value = FAR
@@ -98,21 +107,30 @@ const postProcessing = (function () {
 
     const scene = new THREE.Scene()
 
-    const camera = new THREE.OrthographicCamera(-halfW, halfW, halfH, -halfH, -20, 20)
+    const camera = new THREE.OrthographicCamera(
+        -halfW, halfW,
+        halfH, -halfH,
+        -20, 20)
     camera.position.z = 1.55
     scene.add(camera)
 
-    const pars = {
+    const renderTargetOpts = {
         minFilter: THREE.LinearFilter,
         magFilter: THREE.LinearFilter,
         format: THREE.RGBFormat,
     }
-    const rtTextureDepth = new THREE.WebGLRenderTarget(innerWidth, innerHeight, pars);
-    const rtTextureColor = new THREE.WebGLRenderTarget(innerWidth, innerHeight, pars);
+    const rtTextureDepth = new THREE.WebGLRenderTarget(
+        innerWidth,
+        innerHeight,
+        renderTargetOpts);
+    const rtTextureColor = new THREE.WebGLRenderTarget(
+        innerWidth,
+        innerHeight,
+        renderTargetOpts);
 
-    const bokehUniforms = THREE.UniformsUtils.clone(BokehShader.uniforms)
+    const bokehUniforms = THREE.UniformsUtils.clone(THREE.BokehShader.uniforms)
     bokehUniforms['focalDepth'].value = 1.6
-    bokehUniforms['focalLength'].value = 15
+    bokehUniforms['focalLength'].value = 9
     bokehUniforms['fstop'].value = 2.2
     bokehUniforms['maxblur'].value = 1.3
     bokehUniforms['showFocus'].value = 0
@@ -136,15 +154,18 @@ const postProcessing = (function () {
 
     const bokehMaterial = new THREE.ShaderMaterial({
         uniforms: bokehUniforms,
-        vertexShader: BokehShader.vertexShader,
-        fragmentShader: BokehShader.fragmentShader,
+        vertexShader: THREE.BokehShader.vertexShader,
+        fragmentShader: THREE.BokehShader.fragmentShader,
         defines: {
             RINGS: 3,
             SAMPLES: 4,
         }
     })
 
-    const quadGeometry = new THREE.PlaneBufferGeometry(innerWidth, innerHeight, bokehMaterial)
+    const quadGeometry = new THREE.PlaneBufferGeometry(
+        innerWidth,
+        innerHeight,
+        bokehMaterial)
     const quad = new THREE.Mesh(quadGeometry, bokehMaterial)
     quad.position.z = -7
     scene.add(quad)
@@ -160,8 +181,7 @@ const postProcessing = (function () {
     }
 }())
 
-postProcessing.bokehUniforms['znear'].value = camera.near
-postProcessing.bokehUniforms['zfar'].value = camera.far
+// update camera focal length
 camera.setFocalLength(postProcessing.bokehUniforms['focalLength'].value)
 // #endregion
 
@@ -223,9 +243,7 @@ animate()
 const onResize = () => {
     updateCameraAspectRatio(camera)
     updateRendererSize(renderer)
-    postProcessing.bokehUniforms['textureWidth'].value = window.innerWidth
-    postProcessing.bokehUniforms['textureHeight'].value = window.innerHeight
-    postProcessing.bokehMaterial.needsUpdate = true
+    updateBokeh(postProcessing)
 }
 
 window.addEventListener('resize', onResize)
