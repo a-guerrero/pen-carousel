@@ -9,7 +9,7 @@ THREE.BokehDepthShader = BokehDepthShader
 // CONSTANTS
 ////////////////////////////////////////////////////////////////////////////////
 // #region
-const { degToRad, mapLinear } = THREE.Math
+const { mapLinear } = THREE.Math
 const FOV = 75
 const NEAR = 0.1
 const FAR = 15
@@ -223,12 +223,12 @@ scene.add(mesh)
 // ANIMATION
 ////////////////////////////////////////////////////////////////////////////////
 const clock = new THREE.Clock()
-const meshMaxRotation = degToRad(540)
+const meshMaxRotation = Math.PI * 3
 
 const animate = () => {
     requestAnimationFrame(animate)
-    const elapsed = clock.getElapsedTime()
 
+    const elapsed = clock.getElapsedTime()
     mesh.position.z = mapCos(elapsed, -4, 4)
     mesh.rotation.x = mapCos(elapsed * 0.7, 0, meshMaxRotation)
     mesh.rotation.y = mapCos(elapsed * 0.5, 0, meshMaxRotation)
