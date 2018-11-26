@@ -9,6 +9,7 @@ THREE.BokehDepthShader = BokehDepthShader
 // CONSTANTS
 ////////////////////////////////////////////////////////////////////////////////
 // #region
+const { degToRad, mapLinear } = THREE.Math
 const FOV = 75
 const NEAR = 0.1
 const FAR = 15
@@ -28,14 +29,21 @@ const colors = Object.freeze({
 // #region
 
 /**
- * @param {number} y1
- * @param {number} y2
- * @param {number} x
- * @param {number} phase
+ * @param {number} n
+ * @param {number} min
+ * @param {number} max
  */
-const cosWave = (y1, y2, x, phase = 1) => {
-    const amplitude = (y2 - y1) / 2
-    return y1 + amplitude + amplitude * Math.cos(x * phase)
+function mapRatio(n, min, max) {
+    return mapLinear(n, -1, 1, min, max)
+}
+
+/**
+ * @param {number} n
+ * @param {number} min
+ * @param {number} max
+ */
+function mapCos(n, min, max) {
+    return mapRatio(Math.cos(n), min, max)
 }
 
 const getAspectRatio = () => {
@@ -215,15 +223,15 @@ scene.add(mesh)
 // ANIMATION
 ////////////////////////////////////////////////////////////////////////////////
 const clock = new THREE.Clock()
-const meshMaxRotation = THREE.Math.degToRad(540)
+const meshMaxRotation = degToRad(540)
 
 const animate = () => {
     requestAnimationFrame(animate)
     const elapsed = clock.getElapsedTime()
 
-    mesh.position.z = cosWave(-4, 4, elapsed)
-    mesh.rotation.x = cosWave(0, meshMaxRotation, elapsed, 0.7)
-    mesh.rotation.y = cosWave(meshMaxRotation, 0, elapsed, 0.5)
+    mesh.position.z = mapCos(elapsed, -4, 4)
+    mesh.rotation.x = mapCos(elapsed * 0.7, 0, meshMaxRotation)
+    mesh.rotation.y = mapCos(elapsed * 0.5, 0, meshMaxRotation)
 
     renderer.clear()
     // render scene into texture
