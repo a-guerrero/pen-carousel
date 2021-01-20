@@ -36,7 +36,7 @@
         "webpack-dev-server": "^3.1.4"
     },
     "dependencies": {
-        "gsap": "^2.0.1",
+        "gsap": "^3.6.0",
         "reset-css": "^3.0.0",
         "three": "^0.93.0"
     }
